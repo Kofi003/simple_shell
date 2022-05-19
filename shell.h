@@ -1,160 +1,140 @@
-#ifndef SHELL_H
-#define SHELL_H
+#ifndef _SHELL_H_
+#define _SHELL_H_
 
-#include <stdio.h>
+/*
+ * File: shell.h
+ * Auth: Auth: Sarpong Twum Barimah & Francesca Lynn Asiedu Asare
+ */
+
+#include <fcntl.h>
 #include <signal.h>
-#include <stdlib.h>
-#include <sys/stat.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <sys/wait.h>
+#include <stdlib.h>
 #include <unistd.h>
+#include <errno.h>
+#include <stdio.h>
 
-#define BUFFER_SIZE 256
-#define ENV_SEPARATOR "="
-#define ESCAPE_SEPARATOR "#"
-#define PATH_SEPARATOR ":"
-#define COMMAND_SEPARATOR ";\n"
-#define SEPARATORS " \n"
-#define PROMPT "$ "
+#define END_OF_FILE -2
+#define EXIT -3
 
+/* Global environemnt */
 extern char **environ;
+/* Global program name */
+char *name;
+/* Global history counter */
+int hist;
 
 /**
- * struct environment_s - environment variable
- *
- * @name: environment name
- * @value: environment value
- * @next: points to the next node
+ * struct list_s - A new struct type defining a linked list.
+ * @dir: A directory path.
+ * @next: A pointer to another struct list_s.
  */
-typedef struct environment_s
+typedef struct list_s
 {
-	char *name;   /* ex: PATH */
-	char *value;  /* ex: /bin:/usr/bin */
-	char *global; /* PATH=/bin:/usr/bin */
-	struct environment_s *next;
-} environment_t;
+	char *dir;
+	struct list_s *next;
+} list_t;
 
 /**
- * struct appData_s - data variable
- *
- * @arguments: argument's array
- * @buffer: buffer
- * @command: command name
+ * struct builtin_s - A new struct type defining builtin commands.
+ * @name: The name of the builtin command.
+ * @f: A function pointer to the builtin command's function.
  */
-typedef struct appData_s
+typedef struct builtin_s
 {
-	char **arguments;
-	char *buffer;
-	char *commandName;
-	char **commandList;
-	char **history;
-	char *programName;
-	environment_t *env;
-} appData_t;
+	char *name;
+	int (*f)(char **argv, char **front);
+} builtin_t;
 
 /**
- * struct errorMessage_s - An structure for each error message
- *
- * @ecode: error code
- * @msg: pointer to error message
- * @size: error message length.
+ * struct alias_s - A new struct defining aliases.
+ * @name: The name of the alias.
+ * @value: The value of the alias.
+ * @next: A pointer to another struct alias_s.
  */
-typedef struct errorMessage_s
+typedef struct alias_s
 {
-	int code;
-	char *msg;
-} errorMessage_t;
+	char *name;
+	char *value;
+	struct alias_s *next;
+} alias_t;
 
-/**
- * struct customCommand_s - struct conversion to function
- *
- * @command: flag string
- * @func: pointer to func
- */
-typedef struct customCommand_s
-{
-	char *commandName;
-	void (*func)(appData_t *);
-} customCommand_t;
+/* Global aliases linked list */
+alias_t *aliases;
 
-environment_t *A_addEnvNodeEnd(
-	environment_t **prmHeadNode,
-	char *prmGlobal
-);
-void A_addWord(char *prmWord, int *prmIndex, char **prmArray);
-int A_atoi(char *prmString);
-void *C_calloc(unsigned int prmNumber, unsigned int prmSize);
-void C_cdHelp(void);
-void C_changeDirectory(appData_t *prmData);
-void C_changeToAnyDirectory(appData_t *prmData, char *prmCurrentDirectory);
-void C_changeToHomeDirectory(appData_t *prmData, char *prmCurrentDirectory);
-void C_changeToPreviousDirectory(appData_t *prmData, char *prmCurrentDirectory);
-int C_checkEndCharacter(char *prmString);
-int C_checkEscapeSeparators(char prmChar, char *prmEscapeSeparators);
-int C_checkSeparators(char prmChar, char *prmSeparators);
-char *C_cleanString(char *prmString);
-environment_t *C_createEnvNode(char *prmGlobal);
-void C_ctrlC(int prmSignal);
-void D_defaultHelp(char *prmCommand);
-int D_deleteEnvNode(environment_t *prmHead, char *prmName);
-void _prompt(void);
-void E_env(appData_t *prmData);
-void E_envHelp(void);
-void E_errorHandler(appData_t *prmData, int messageCode);
-void E_errorHandler(appData_t *prmData);
-void E_exitStatus(appData_t *prmData);
-void E_exitHelp(void);
-void F_freeAppData(appData_t *prmData);
-void F_freeCharDoublePointer(char **prmPtr);
-void F_freeEnvList(environment_t *prmHeadNode);
-char *G_generateAbsolutePath(char *prmPath, char *prmCommandName);
-char *G_generateEnvGlobal(char *prmName, char *prmValue);
-void (*G_getCustomFunction(char *prmCommand))(appData_t *);
-environment_t *G_getenv(environment_t *prmEnviron, char *prmName);
-char *G_getenvname(char *prmVariable);
-char *G_getenvvalue(char *prmVariable);
-int G_getenvIndex(environment_t *prmHead, char *prmName);
-environment_t *G_getenvNodeAtIndex(
-	environment_t *prmHead,
-	unsigned int prmIndex
-);
-environment_t *G_getLastEnvNode(environment_t *prmHeadNode);
-void G_getline(appData_t *prmData);
-char *G_getword(char *prmGlobal, int prmOffset, int prmSize);
-void H_help(appData_t *prmData);
-void H_helpHelp(void);
-int I_inArray(char prmChar, char *prmArray);
-appData_t *I_initData(char **prmArgv);
-void I_initEnvData(appData_t *prmData);
-int I_isdigit(char prmChar);
-int I_isNumber(char *s);
-char *I_itoa(int prmNumber);
-int L_listEnvLen(environment_t *prmHead);
-char *M_memcpy(char *prmDest, char *prmSrc, unsigned int prmLimit);
-char *M_memset(char *prmString, char prmCharacter, unsigned int prmLimit);
-int N_nbrLen(int prmNumber);
-char **P_parsingPathEnvironment(appData_t *prmData);
-void P_printenv(environment_t *prmEnviron);
-int _putchar(char prmChar);
-int P_puts(char *prmStr);
-void *R_realloc(void *prmPtr, unsigned int prmOldSize, unsigned int prmNewSize);
-void S_setenv(environment_t *prmEnviron, char *prmName, char *prmValue, int prmOverwrite);
-void SS_setenvHelp(void);
-void SS_setenvironment(appData_t *prmData);
-char *S_strcat(char *prmDest, char *prmSrc);
-int S_strcmp(char *prmString1, char *prmString2);
-char *S_strcpy(char *prmDest, char *prmSrc);
-char *S_strconcat(char *prmString1, char *prmString2);
-char *S_strncpy(char *prmDest, char *prmSrc, int prmLimit);
-unsigned int S_strcspn(char *prmString, char *prmDeny);
-char *S_strdup(char *prmString);
-int S_strlen(char *prmStr);
-char *S_strstr(char *prmHaystack, char *prmNeedle, int prmBegin);
-char **S_strtow(char *prmString, char *prmSeparators, char *prmEscapeSeparators);
-void U_unsetenv(appData_t *prmData, char *prmName);
-void UU_unsetenvHelp(void);
-void UU_unsetenvironment(appData_t *prmData);
-char *W_which(appData_t *prmData);
-int WW_wordNumber(char *prmString, char *prmSeparators);
+/* Main Helpers */
+ssize_t _getline(char **lineptr, size_t *n, FILE *stream);
+void *_realloc(void *ptr, unsigned int old_size, unsigned int new_size);
+char **_strtok(char *line, char *delim);
+char *get_location(char *command);
+list_t *get_path_dir(char *path);
+int execute(char **args, char **front);
+void free_list(list_t *head);
+char *_itoa(int num);
 
-#endif
+/* Input Helpers */
+void handle_line(char **line, ssize_t read);
+void variable_replacement(char **args, int *exe_ret);
+char *get_args(char *line, int *exe_ret);
+int call_args(char **args, char **front, int *exe_ret);
+int run_args(char **args, char **front, int *exe_ret);
+int handle_args(int *exe_ret);
+int check_args(char **args);
+void free_args(char **args, char **front);
+char **replace_aliases(char **args);
+
+/* String functions */
+int _strlen(const char *s);
+char *_strcat(char *dest, const char *src);
+char *_strncat(char *dest, const char *src, size_t n);
+char *_strcpy(char *dest, const char *src);
+char *_strchr(char *s, char c);
+int _strspn(char *s, char *accept);
+int _strcmp(char *s1, char *s2);
+int _strncmp(const char *s1, const char *s2, size_t n);
+
+/* Builtins */
+int (*get_builtin(char *command))(char **args, char **front);
+int shellby_exit(char **args, char **front);
+int shellby_env(char **args, char __attribute__((__unused__)) **front);
+int shellby_setenv(char **args, char __attribute__((__unused__)) **front);
+int shellby_unsetenv(char **args, char __attribute__((__unused__)) **front);
+int shellby_cd(char **args, char __attribute__((__unused__)) **front);
+int shellby_alias(char **args, char __attribute__((__unused__)) **front);
+int shellby_help(char **args, char __attribute__((__unused__)) **front);
+
+/* Builtin Helpers */
+char **_copyenv(void);
+void free_env(void);
+char **_getenv(const char *var);
+
+/* Error Handling */
+int create_error(char **args, int err);
+char *error_env(char **args);
+char *error_1(char **args);
+char *error_2_exit(char **args);
+char *error_2_cd(char **args);
+char *error_2_syntax(char **args);
+char *error_126(char **args);
+char *error_127(char **args);
+
+/* Linkedlist Helpers */
+alias_t *add_alias_end(alias_t **head, char *name, char *value);
+void free_alias_list(alias_t *head);
+list_t *add_node_end(list_t **head, char *dir);
+void free_list(list_t *head);
+
+void help_all(void);
+void help_alias(void);
+void help_cd(void);
+void help_exit(void);
+void help_help(void);
+void help_env(void);
+void help_setenv(void);
+void help_unsetenv(void);
+void help_history(void);
+
+int proc_file_commands(char *file_path, int *exe_ret);
+#endif /* _SHELL_H_ */
