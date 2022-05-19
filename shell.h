@@ -1,160 +1,112 @@
-#ifndef SHELL_H
-#define SHELL_H
+#ifndef _SHELL_H_
+#define _SHELL_H_
 
-#include <stdio.h>
-#include <signal.h>
-#include <stdlib.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <unistd.h>
-
-#define BUFFER_SIZE 256
-#define ENV_SEPARATOR "="
-#define ESCAPE_SEPARATOR "#"
-#define PATH_SEPARATOR ":"
-#define COMMAND_SEPARATOR ";\n"
-#define SEPARATORS " \n"
-#define PROMPT "$ "
+/**###### environ var ######*/
 
 extern char **environ;
 
-/**
- * struct environment_s - environment variable
- *
- * @name: environment name
- * @value: environment value
- * @next: points to the next node
- */
-typedef struct environment_s
-{
-	char *name;   /* ex: PATH */
-	char *value;  /* ex: /bin:/usr/bin */
-	char *global; /* PATH=/bin:/usr/bin */
-	struct environment_s *next;
-} environment_t;
+/**##### MACROS ######*/
+
+#define BUFSIZE 1024
+#define DELIM " \t\r\n\a"
+#define PRINTER(c) (write(STDOUT_FILENO, c, _strlen(c)))
+
+/**###### LIBS USED ######*/
+
+#include <stdio.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <string.h>
+#include <sys/wait.h>
+#include <stdlib.h>
+#include <signal.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <errno.h>
+#include <linux/limits.h>
+
+
+
+
+
+/**###### STRING FUNCTION ######*/
+
+char *_strtok(char *str, const char *tok);
+unsigned int check_delim(char c, const char *str);
+char *_strncpy(char *dest, char *src, int n);
+int _strlen(char *s);
+int _putchar(char c);
+int _atoi(char *s);
+void _puts(char *str);
+int _strcmp(char *s1, char *s2);
+int _isalpha(int c);
+void array_rev(char *arr, int len);
+int intlen(int num);
+char *_itoa(unsigned int n);
+char *_strcat(char *dest, char *src);
+char *_strcpy(char *dest, char *src);
+char *_strchr(char *s, char c);
+int _strncmp(const char *s1, const char *s2, size_t n);
+char *_strdup(char *str);
+
+/**###### MEMORIE  MANGMENT ####*/
+
+void free_env(char **env);
+void *fill_an_array(void *a, int el, unsigned int len);
+char *_memcpy(char *dest, char *src, unsigned int n);
+void *_calloc(unsigned int size);
+void *_realloc(void *ptr, unsigned int old_size, unsigned int new_size);
+void free_all(char **input, char *line);
+
+/**###### INPUT Function ######*/
+
+void prompt(void);
+void signal_to_handel(int sig);
+char *_getline(void);
+
+/** ###### Command parser and extractor ###*/
+
+int path_cmd(char **line);
+char *_getenv(char *name);
+char **parse_cmd(char *cmd);
+int handle_builtin(char **cmd, int er);
+void read_file(char *filename, char **argv);
+char *build(char *token, char *value);
+int check_builtin(char **cmd);
+void creat_envi(char **envi);
+int check_cmd(char **tokens, char *line, int count, char **argv);
+void treat_file(char *line, int counter, FILE *fd, char **argv);
+void exit_bul_for_file(char **cmd, char *line, FILE *fd);
+
+/** ####BUL FUNC #####*/
+
+void hashtag_handle(char *buff);
+int history(char *input);
+int history_dis(char **cmd, int er);
+int dis_env(char **cmd, int er);
+int change_dir(char **cmd, int er);
+int display_help(char **cmd, int er);
+int echo_bul(char **cmd, int er);
+void  exit_bul(char **cmd, char *input, char **argv, int c);
+int print_echo(char **cmd);
+
+/** ####error handle and Printer ####*/
+void print_number(unsigned int n);
+void print_number_in(int n);
+void print_error(char *line, int c, char **argv);
+void _prerror(char **argv, int c, char **cmd);
+
 
 /**
- * struct appData_s - data variable
- *
- * @arguments: argument's array
- * @buffer: buffer
- * @command: command name
+ * struct bulltin - contain bultin to handle and function to excute
+ * @command:pointer to char
+ * @fun:fun to excute when bultin true
  */
-typedef struct appData_s
-{
-	char **arguments;
-	char *buffer;
-	char *commandName;
-	char **commandList;
-	char **history;
-	char *programName;
-	environment_t *env;
-} appData_t;
 
-/**
- * struct errorMessage_s - An structure for each error message
- *
- * @ecode: error code
- * @msg: pointer to error message
- * @size: error message length.
- */
-typedef struct errorMessage_s
+typedef struct  bulltin
 {
-	int code;
-	char *msg;
-} errorMessage_t;
-
-/**
- * struct customCommand_s - struct conversion to function
- *
- * @command: flag string
- * @func: pointer to func
- */
-typedef struct customCommand_s
-{
-	char *commandName;
-	void (*func)(appData_t *);
-} customCommand_t;
-
-environment_t *A_addEnvNodeEnd(
-	environment_t **prmHeadNode,
-	char *prmGlobal
-);
-void A_addWord(char *prmWord, int *prmIndex, char **prmArray);
-int A_atoi(char *prmString);
-void *C_calloc(unsigned int prmNumber, unsigned int prmSize);
-void C_cdHelp(void);
-void C_changeDirectory(appData_t *prmData);
-void C_changeToAnyDirectory(appData_t *prmData, char *prmCurrentDirectory);
-void C_changeToHomeDirectory(appData_t *prmData, char *prmCurrentDirectory);
-void C_changeToPreviousDirectory(appData_t *prmData, char *prmCurrentDirectory);
-int C_checkEndCharacter(char *prmString);
-int C_checkEscapeSeparators(char prmChar, char *prmEscapeSeparators);
-int C_checkSeparators(char prmChar, char *prmSeparators);
-char *C_cleanString(char *prmString);
-environment_t *C_createEnvNode(char *prmGlobal);
-void C_ctrlC(int prmSignal);
-void D_defaultHelp(char *prmCommand);
-int D_deleteEnvNode(environment_t *prmHead, char *prmName);
-void _prompt(void);
-void E_env(appData_t *prmData);
-void E_envHelp(void);
-void E_errorHandler(appData_t *prmData, int messageCode);
-void E_errorHandler(appData_t *prmData);
-void E_exitStatus(appData_t *prmData);
-void E_exitHelp(void);
-void F_freeAppData(appData_t *prmData);
-void F_freeCharDoublePointer(char **prmPtr);
-void F_freeEnvList(environment_t *prmHeadNode);
-char *G_generateAbsolutePath(char *prmPath, char *prmCommandName);
-char *G_generateEnvGlobal(char *prmName, char *prmValue);
-void (*G_getCustomFunction(char *prmCommand))(appData_t *);
-environment_t *G_getenv(environment_t *prmEnviron, char *prmName);
-char *G_getenvname(char *prmVariable);
-char *G_getenvvalue(char *prmVariable);
-int G_getenvIndex(environment_t *prmHead, char *prmName);
-environment_t *G_getenvNodeAtIndex(
-	environment_t *prmHead,
-	unsigned int prmIndex
-);
-environment_t *G_getLastEnvNode(environment_t *prmHeadNode);
-void G_getline(appData_t *prmData);
-char *G_getword(char *prmGlobal, int prmOffset, int prmSize);
-void H_help(appData_t *prmData);
-void H_helpHelp(void);
-int I_inArray(char prmChar, char *prmArray);
-appData_t *I_initData(char **prmArgv);
-void I_initEnvData(appData_t *prmData);
-int I_isdigit(char prmChar);
-int I_isNumber(char *s);
-char *I_itoa(int prmNumber);
-int L_listEnvLen(environment_t *prmHead);
-char *M_memcpy(char *prmDest, char *prmSrc, unsigned int prmLimit);
-char *M_memset(char *prmString, char prmCharacter, unsigned int prmLimit);
-int N_nbrLen(int prmNumber);
-char **P_parsingPathEnvironment(appData_t *prmData);
-void P_printenv(environment_t *prmEnviron);
-int _putchar(char prmChar);
-int P_puts(char *prmStr);
-void *R_realloc(void *prmPtr, unsigned int prmOldSize, unsigned int prmNewSize);
-void S_setenv(environment_t *prmEnviron, char *prmName, char *prmValue, int prmOverwrite);
-void SS_setenvHelp(void);
-void SS_setenvironment(appData_t *prmData);
-char *S_strcat(char *prmDest, char *prmSrc);
-int S_strcmp(char *prmString1, char *prmString2);
-char *S_strcpy(char *prmDest, char *prmSrc);
-char *S_strconcat(char *prmString1, char *prmString2);
-char *S_strncpy(char *prmDest, char *prmSrc, int prmLimit);
-unsigned int S_strcspn(char *prmString, char *prmDeny);
-char *S_strdup(char *prmString);
-int S_strlen(char *prmStr);
-char *S_strstr(char *prmHaystack, char *prmNeedle, int prmBegin);
-char **S_strtow(char *prmString, char *prmSeparators, char *prmEscapeSeparators);
-void U_unsetenv(appData_t *prmData, char *prmName);
-void UU_unsetenvHelp(void);
-void UU_unsetenvironment(appData_t *prmData);
-char *W_which(appData_t *prmData);
-int WW_wordNumber(char *prmString, char *prmSeparators);
+	char *command;
+	int (*fun)(char **line, int er);
+} bul_t;
 
 #endif

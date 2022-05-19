@@ -1,77 +1,103 @@
-.TH man "6 April 2021" "simple_shell man page"
-
+.TH man 1 "20 November 2020" "0.20" "HSH man page"
 .SH NAME
-simple_shell - takes command from user input into prompt and does what the user need to do
-
-.SH SYNONPSIS
-.B simple_shell 
-[command_string | file] [options]
-
+.B hsh 
+- Simple Shell Studying purpose Holberton School
+.SH SYNOPSIS
+.B ./hsh 
+[command] [options] [FILE]
+.SH COPYRIGHT
+.B hsh 
+is Copyright (C) Ahmed Belhaj  and licensed under the MIT license.
 .SH DESCRIPTION
-.B simple_shell 
-is a command language interpreter that executes commands read from the standard input or from a file.
+.B hsh 
+(Simple Shell) is an end of semester project for students at Holberton School where we expore, 
+understand and build a working functional simple shell program.
+.B Overview
 
+The simple shell is a simplified iteration of a command line interpreter, similar to 
+.B bash or 
+.B dash. 
+.I FORMAT [ARGUMENT]...
+.SH OPTIONS
+.B hsh
+operates in both 
+.I interactive 
+and 
+.I non-interactive
+ mode. The user may initiate 
+.B simple shell
+and begin working or initate 
+.B simple shell
+using commands meant to be run by the program.
 .SH ARGUMENTS
-If arguments remain after option processing the first argument is assumed to be the name of a file containing shell commands.
-simple_shell reads and executes commands from this file, then exit.
-simple_shell exit status is the exit status of the last command executed in the script. If not commands are executed, the exit status is '\n'.
-The executed files are always found in the PATH.
+The first argument, argument 0 is understood to be the command to be run by 
+.B simple shell
+and arguments following as modifiers or options.
+.SH INVOCATION
+.B hsh
+may be invoked with the same functionality in 
+.I interactive 
+or 
+.I non-interactive 
+mode.  The user may quit the program by typing "exit", "Ctrl + D",  on the command line.
+When the program quits or a command has been executed, 
+.B simple shell 
+returns with a new prompt: "$ "
 
-.SH DEFINITIONS
-The following definitions are used throughout the rest of this document.
-.P
-.B blank  
-A space or a tab.
-.P
-.B word
-A sequence of characters considered as a single unit by the simple_shell.
-also known as 
-.B token.
-.P
-.B name
-A word consisting only of alphanumeric characters and underscores,
-and beginning with an alphabetic character or an underscore.
-Also referred to as an 
-.B identifier.
+.B Example
+.IP
 
-.SH SIMPLE_SHELL GRAMMAR
-.B Simple Commands
-A simple command is a sequence of optional variable assignments followed by
-blank-separated words and redirections, and terminated by a control operator.
-The first word specifies the command to be executed, and is passed as
-argument zero.  The remaining words are passed as arguments to the invoked
-command.
+$./hsh
 
-.SH COMMAND EXECUTION
-After a command has been split into words, if it results in a simple
-command and an optional list of arguments, the following actions are taken.
+$pwd
 
-.SH EXAMPLES
-.br
-ls /directory/directory
-.br
-cd directory/
-.br
-cd ../..
-.br
-exit(0);
-.br
-Ctrl+D
-.br
+Username@your-regular-prompt:~$
 
-.B OUTPUT
-print file and directories in the wanted directory.
-.br
-goes into the wanted directory.
-.br
-goes backward of two directories.
-.br
-exit the program and print 0.
-.br
-exit program.
+$
 
-.SH AUTHORS
-.br
-.B Amissah Prince <prince.amissah@regent.edu.gh>
-.br
-.B Brenda Agyekum <Bhrehndar17@gmail.com>
+$/bin/pwd
+
+Username@your-regular-prompt:~$
+$
+
+.SH RESERVED WORDS
+.B exit: 
+quits the program, exits the shell.
+
+.B env: 
+prints the environment variables
+
+.SH HISTORY
+The 
+.B history 
+built-in displays the history list, one command per line, preceded with line numbers, starting with 0. On exit the entire history is written to a file named
+.I simple_shell_history
+in the 
+.I $HOME
+directory.
+.SH SHELL BUILTIN COMMANDS
+The commands 
+.B exit
+,
+.B env
+,
+.B help
+and
+.B echo
+are handled automatically by 
+.B hsh
+
+.SH SEE ALSO
+.I sh(1)
+,
+.I bash(1)
+,
+.I _printf(3)
+
+.SH BUGS
+No Known bug , please 
+Report 
+.B hsh
+bugs to https://github.com/Theemiss/simple_shell/issues
+.SH AUTHOR
+Ahmed Belhaj
