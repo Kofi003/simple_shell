@@ -1,6 +1,6 @@
 #include "shell.h"
 /**
- *  _prerror - Print Custome Error
+ *  _prerror - Print Custom Error
  * @argv:Program Name
  * @c:Error Count
  * @cmd:Command
